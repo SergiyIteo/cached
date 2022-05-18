@@ -2,7 +2,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:cached/src/asserts.dart';
 import 'package:cached/src/config.dart';
 import 'package:cached/src/models/cached_method.dart';
-import 'package:cached/src/models/clear_cached_method.dart';
 import 'package:cached/src/models/constructor.dart';
 import 'package:cached_annotation/cached_annotation.dart';
 import 'package:source_gen/source_gen.dart';
@@ -78,12 +77,21 @@ class ClassWithCache {
 
     assertValidateClearCachedMethods(clearMethods, methods);
 
+
+    final clearAllCachedMethods = element.methods
+        .where((method) => ClearAllCachedMethod.getAnnotation(method) != null)
+        .toList();
+
+    if (clearAllCachedMethods.length > 1) {
+      throw InvalidGenerationSourceError(
+          'There should be only one method with clearAllCached annotation');
+    }
+
     return ClassWithCache(
       name: element.name,
       useStaticCache:
           useStaticCache ?? config.useStaticCache ?? _defaultUseStaticCache,
       methods: methods,
-      clearMethods: clearMethods,
       constructor: constructor,
     );
   }
