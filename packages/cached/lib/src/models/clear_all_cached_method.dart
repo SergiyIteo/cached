@@ -7,28 +7,33 @@ import 'package:cached_annotation/src/clear_all_cached.dart';
 
 import '../asserts.dart';
 import '../config.dart';
+import 'cached_method.dart';
 
 class ClearAllCachedMethod {
   ClearAllCachedMethod({
     required this.name,
     required this.isAsync,
     required this.returnType,
+    required this.methodsNames,
   }) : assert(isAsync == false && returnType.isVoid);
 
   final String name;
   final bool isAsync;
   final DartType returnType;
+  final Iterable<String> methodsNames;
 
   factory ClearAllCachedMethod.fromElement(
-      MethodElement element, Config config) {
+      MethodElement element, Iterable<CachedMethod> cachedMethods) {
+    final methodsNames = cachedMethods.map((e) => e.name);
+
     const methodAnnotationChecker = TypeChecker.fromRuntime(ClearAllCached);
     final annotation = methodAnnotationChecker.firstAnnotationOf(element);
-
 
     final method = ClearAllCachedMethod(
       name: element.name,
       isAsync: element.isAsynchronous,
       returnType: element.returnType,
+      methodsNames: methodsNames,
     );
 
     if (element.isAsynchronous == false) {

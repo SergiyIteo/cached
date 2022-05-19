@@ -1,7 +1,9 @@
 import 'package:cached/src/models/class_with_cache.dart';
 import 'package:cached/src/templates/all_params_template.dart';
 import 'package:cached/src/templates/cached_method_template.dart';
-import 'package:cached/src/templates/clear_cached_method_template.dart';
+import 'package:cached/src/templates/clear_all_cached_template.dart';
+
+import 'clear_cached_method_template.dart';
 
 class ClassTemplate {
   ClassTemplate(this.classWithCache);
@@ -24,7 +26,7 @@ class ClassTemplate {
 
     return '''
 class _${classWithCache.name} with ${classWithCache.name} implements _\$${classWithCache.name} {
-  _${classWithCache.name}(${constructorParamTemplates.generateThisParams()});
+  const _${classWithCache.name}(${constructorParamTemplates.generateThisParams()});
 
   ${constructorParamTemplates.generateFields(addOverrideAnnotation: true)}
 
@@ -37,6 +39,10 @@ class _${classWithCache.name} with ${classWithCache.name} implements _\$${classW
   ${methodTemplates.map((e) => e.generateMethod()).join('\n\n')}
 
   ${clearMethodTemplates.map((e) => e.generateMethod()).join('\n\n')}
+  
+  if(${classWithCache.clearAllMethod} != null) {
+    ${ClearAllCachedTemplate(classWithCache.clearAllMethod!).generateMethod()}
+  }
 }
 ''';
   }

@@ -2,9 +2,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:cached/src/asserts.dart';
 import 'package:cached/src/config.dart';
 import 'package:cached/src/models/cached_method.dart';
+import 'package:cached/src/models/clear_all_cached_method.dart';
 import 'package:cached/src/models/constructor.dart';
 import 'package:cached_annotation/cached_annotation.dart';
+import 'package:collection/collection.dart';
 import 'package:source_gen/source_gen.dart';
+
+import 'clear_cached_method.dart';
 
 const _defaultUseStaticCache = false;
 
@@ -15,12 +19,14 @@ class ClassWithCache {
     required this.methods,
     required this.constructor,
     required this.clearMethods,
+    required this.clearAllMethod,
   });
 
   final bool useStaticCache;
   final String name;
   final Constructor constructor;
   final Iterable<CachedMethod> methods;
+  final ClearAllCachedMethod? clearAllMethod;
   final Iterable<ClearCachedMethod> clearMethods;
 
   factory ClassWithCache.fromElement(ClassElement element, Config config) {
@@ -77,12 +83,15 @@ class ClassWithCache {
 
     assertValidateClearCachedMethods(clearMethods, methods);
 
-
     final clearAllCachedMethods = element.methods
         .where((method) => ClearAllCachedMethod.getAnnotation(method) != null)
-        .toList();
+        .map((e) => ClearAllCachedMethod.fromElement(e, methods));
 
     if (clearAllCachedMethods.length > 1) {
+      throw InvalidGenerationSourceError(
+          'There should be only one method with clearAllCached annotation');
+    }
+    if (clearAllCachedMethods.isEmpty) {
       throw InvalidGenerationSourceError(
           'There should be only one method with clearAllCached annotation');
     }
@@ -93,6 +102,8 @@ class ClassWithCache {
           useStaticCache ?? config.useStaticCache ?? _defaultUseStaticCache,
       methods: methods,
       constructor: constructor,
+      clearMethods: clearMethods,
+      clearAllMethod: clearAllCachedMethods.firstOrNull,
     );
   }
 }
